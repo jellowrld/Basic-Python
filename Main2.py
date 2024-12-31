@@ -27,9 +27,23 @@ class BasicInterpreter:
         self.debug_mode = False  # Debugging flag
         self.pygame_initialized = False  # Pygame state
         self.expression_cache = {}  # Cache for expressions
+        self.command_history = []  # Command history
+        self.program_history = []  # History of program states
+        self.help_text = """Available Commands:
+        PRINT <expr>       - Prints expression
+        LET <var> = <expr> - Assigns a value to a variable
+        IF <condition> THEN <stmt> - Conditional execution
+        GOTO <line>       - Jumps to a line number
+        FOR <var> = <start> TO <end> [STEP <step>] - Loop
+        NEXT <var>        - Next iteration of loop
+        LIST               - Lists all program lines
+        RUN                - Starts the program execution
+        HELP               - Displays help text
+        """
 
     def parse_program(self, code):
         """Parse the input BASIC code into line-numbered statements."""
+        self.program = {}  # Clear previous program
         for line in code.strip().split("\n"):
             if line.strip():
                 parts = line.split(maxsplit=1)
@@ -196,6 +210,9 @@ class BasicInterpreter:
                 for ln in sorted(self.program.keys()):
                     print(f"{ln} {self.program[ln]}")
 
+            elif line.startswith("HELP"):
+                print(self.help_text)
+
             else:
                 raise ValueError(f"Unknown command: {line}")
 
@@ -243,27 +260,30 @@ class BasicInterpreter:
         if self.graphics_initialized:
             turtle.done()
 
-# GUI code
-def open_gui():
-    def run_basic_program():
-        code = text_box.get("1.0", tk.END)
-        interpreter = BasicInterpreter()
-        interpreter.parse_program(code)
+# GUI Interface
+def start_gui():
+    root = tk.Tk()
+    root.title("BASIC Interpreter")
+
+    # Code input area
+    code_input = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=15)
+    code_input.pack(pady=10)
+
+    # Result output area
+    output_box = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
+    output_box.pack(pady=10)
+
+    interpreter = BasicInterpreter()
+
+    def run_program():
+        program_code = code_input.get("1.0", tk.END).strip()
+        interpreter.parse_program(program_code)
+        output_box.delete("1.0", tk.END)
         interpreter.run()
 
-    window = tk.Tk()
-    window.title("BASIC Interpreter")
+    run_button = tk.Button(root, text="Run Program", command=run_program)
+    run_button.pack()
 
-    label = tk.Label(window, text="Enter your BASIC program below:")
-    label.pack(pady=5)
+    root.mainloop()
 
-    text_box = scrolledtext.ScrolledText(window, wrap=tk.WORD, width=50, height=20)
-    text_box.pack(padx=10, pady=10)
-
-    run_button = tk.Button(window, text="Run Program", command=run_basic_program)
-    run_button.pack(pady=10)
-
-    window.mainloop()
-
-# Run GUI for BASIC code input
-open_gui()
+start_gui()
