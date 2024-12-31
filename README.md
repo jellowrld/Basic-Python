@@ -3,7 +3,8 @@ This code is a Python-based interpreter designed to mimic the functionality of a
 The interpreter has features that simulate classic BASIC commands, while also expanding on those capabilities with more advanced features, such as functions, subroutines, and date/time handling. It supports both traditional text-based outputs and graphical outputs through the turtle module for 2D graphics and has an extensible structure to add more commands or customize behavior.
 
 List of Features with Brief Explanations
-	1.	Variable Management:
+	
+  1.	Variable Management:
 	•	Supports creating, modifying, and storing variables using the LET keyword, e.g., LET X = 5.
 	
   2.	Input/Output:
@@ -55,7 +56,8 @@ List of Features with Brief Explanations
 	•	LOAD Program: Loads a previously saved program and its state.
 
 Example Use Case
-	1.	Basic Calculations:
+	
+  1.	Basic Calculations:
 	•	You can write simple programs that perform calculations, like adding two numbers or computing the sine of an angle.
 	
   2.	Loops and Conditionals:
