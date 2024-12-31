@@ -3,27 +3,30 @@ import turtle
 import time
 import os
 import math
-import msvcrt
-import pygame
+import random
 import pickle
+import pygame
+import threading
 import tkinter as tk
+from tkinter import scrolledtext
 
 class BasicInterpreter:
     def __init__(self):
-        self.variables = {}       # To store variables
-        self.arrays = {}          # To store arrays
-        self.program = {}         # Program lines
+        self.variables = {}  # To store variables
+        self.arrays = {}  # To store arrays
+        self.program = {}  # Program lines
         self.current_line = None  # Current line of execution
-        self.loop_stack = []      # Stack for FOR/NEXT loops
-        self.call_stack = []      # Stack for GOSUB/RETURN
-        self.data = []            # DATA values
-        self.data_pointer = 0     # Pointer for DATA
-        self.file_handles = {}    # File handles for I/O
-        self.functions = {}       # User-defined functions
-        self.procedures = {}      # User-defined subroutines
+        self.loop_stack = []  # Stack for FOR/NEXT loops
+        self.call_stack = []  # Stack for GOSUB/RETURN
+        self.data = []  # DATA values
+        self.data_pointer = 0  # Pointer for DATA
+        self.file_handles = {}  # File handles for I/O
+        self.functions = {}  # User-defined functions
+        self.procedures = {}  # User-defined subroutines
         self.graphics_initialized = False  # Graphics state
         self.debug_mode = False  # Debugging flag
         self.pygame_initialized = False  # Pygame state
+        self.expression_cache = {}  # Cache for expressions
 
     def parse_program(self, code):
         """Parse the input BASIC code into line-numbered statements."""
@@ -36,7 +39,10 @@ class BasicInterpreter:
         self.current_line = min(self.program.keys())
 
     def evaluate_expression(self, expr):
-        """Evaluate a BASIC expression."""
+        """Evaluate a BASIC expression with caching."""
+        if expr in self.expression_cache:
+            return self.expression_cache[expr]
+        
         try:
             expr = expr.replace("ABS", "abs")
             expr = expr.replace("LEN", "len")
@@ -53,12 +59,17 @@ class BasicInterpreter:
             expr = expr.replace("TIME$", "time.strftime('%H:%M:%S')")
             expr = expr.replace("DATE", "time.localtime()")
             expr = expr.replace("TIME", "time.localtime()")
-            return eval(expr, {"math": __import__("math"), "random": __import__("random"), "time": time}, self.variables)
+            
+            result = eval(expr, {"math": __import__("math"), "random": __import__("random"), "time": time}, self.variables)
+            
+            # Cache the result for future use
+            self.expression_cache[expr] = result
+            return result
         except Exception as e:
             raise ValueError(f"Invalid expression: {expr} ({e})")
 
     def execute_line(self, line):
-        """Execute a single line of BASIC code."""
+        """Execute a single line of BASIC code with extended features."""
         try:
             if line.startswith("PRINT"):
                 to_print = line[6:].strip()
@@ -86,7 +97,7 @@ class BasicInterpreter:
             elif line.startswith("SELECT CASE"):
                 condition = line[12:].strip()
                 case_found = False
-                for case in self.program[self.current_line+1:]:
+                for case in self.program[self.current_line + 1:]:
                     if case.startswith("CASE"):
                         case_value = case[5:].strip()
                         if self.evaluate_expression(condition.strip()) == self.evaluate_expression(case_value):
@@ -232,28 +243,27 @@ class BasicInterpreter:
         if self.graphics_initialized:
             turtle.done()
 
-    def open_input_box(self):
-        """Create a basic input box to allow users to type BASIC code."""
-        root = tk.Tk()
-        root.title("Enter Your BASIC Program Code")
+# GUI code
+def open_gui():
+    def run_basic_program():
+        code = text_box.get("1.0", tk.END)
+        interpreter = BasicInterpreter()
+        interpreter.parse_program(code)
+        interpreter.run()
 
-        # Create a Text widget to input the BASIC program code
-        text_widget = tk.Text(root, width=60, height=20)
-        text_widget.pack(padx=10, pady=10)
+    window = tk.Tk()
+    window.title("BASIC Interpreter")
 
-        # Function to retrieve the text and close the window
-        def submit_code():
-            program_code = text_widget.get("1.0", tk.END).strip()  # Get all text from the text box
-            self.parse_program(program_code)
-            self.run()
-            root.quit()
+    label = tk.Label(window, text="Enter your BASIC program below:")
+    label.pack(pady=5)
 
-        # Add a Submit button
-        submit_button = tk.Button(root, text="Run Program", command=submit_code)
-        submit_button.pack(pady=10)
+    text_box = scrolledtext.ScrolledText(window, wrap=tk.WORD, width=50, height=20)
+    text_box.pack(padx=10, pady=10)
 
-        root.mainloop()
+    run_button = tk.Button(window, text="Run Program", command=run_basic_program)
+    run_button.pack(pady=10)
 
-# Example usage:
-interpreter = BasicInterpreter()
-interpreter.open_input_box()  # Opens the window to input BASIC code
+    window.mainloop()
+
+# Run GUI for BASIC code input
+open_gui()
