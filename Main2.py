@@ -6,6 +6,7 @@ import math
 import msvcrt
 import pygame
 import pickle
+import tkinter as tk
 
 class BasicInterpreter:
     def __init__(self):
@@ -231,16 +232,28 @@ class BasicInterpreter:
         if self.graphics_initialized:
             turtle.done()
 
-# Example Usage
+    def open_input_box(self):
+        """Create a basic input box to allow users to type BASIC code."""
+        root = tk.Tk()
+        root.title("Enter Your BASIC Program Code")
+
+        # Create a Text widget to input the BASIC program code
+        text_widget = tk.Text(root, width=60, height=20)
+        text_widget.pack(padx=10, pady=10)
+
+        # Function to retrieve the text and close the window
+        def submit_code():
+            program_code = text_widget.get("1.0", tk.END).strip()  # Get all text from the text box
+            self.parse_program(program_code)
+            self.run()
+            root.quit()
+
+        # Add a Submit button
+        submit_button = tk.Button(root, text="Run Program", command=submit_code)
+        submit_button.pack(pady=10)
+
+        root.mainloop()
+
+# Example usage:
 interpreter = BasicInterpreter()
-program_code = """
-10 LET A = 5
-20 PRINT "Hello, world!"
-30 LET B = 3.14
-40 LET C = A + B
-50 PRINT C
-100 IF C > 5 THEN PRINT "C is greater than 5"
-110 GOTO 10
-"""
-interpreter.parse_program(program_code)
-interpreter.run()
+interpreter.open_input_box()  # Opens the window to input BASIC code
